@@ -1,6 +1,9 @@
 const Item = require("../models/category")
 
 // Display list of all Authors.
+exports.index = function(req, res) {
+    res.send('NOT IMPLEMENTED: Site Home Page');
+};
 exports.item_list = function(req, res) {
     res.send('NOT IMPLEMENTED: item list');
 };
