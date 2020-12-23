@@ -1,13 +1,44 @@
 const Category = require('../models/category');
-
+const Item = require("../models/item")
+const async = require("async")
 // Display list of all categorys.
-exports.category_list = function(req, res) {
-    res.send('NOT IMPLEMENTED: category list');
-};
+exports.category_list = function(req, res, next) {
+
+    Category.find()
+      .sort([['name', 'ascending']])
+      .exec(function (err, list_categories) {
+        if (err) { return next(err); }
+        //Successful, so render
+        res.render('category_list', { title: 'Category List', category_list: list_categories });
+      });
+  
+  };
 
 // Display detail page for a specific category.
-exports.category_detail = function(req, res) {
-    res.send('NOT IMPLEMENTED: category detail: ' + req.params.id);
+exports.category_detail = function(req, res, next) {
+
+    async.parallel({
+        category: function(callback) {
+            Category.findById(req.params.id)
+              .exec(callback);
+        },
+
+        category_items: function(callback) {
+            Item.find({ 'category': req.params.id })
+              .exec(callback);
+        },
+
+    }, function(err, results) {
+        if (err) { return next(err); }
+        if (results.category==null) { // No results.
+            var err = new Error('Category not found');
+            err.status = 404;
+            return next(err);
+        }
+        // Successful, so render
+        res.render('category_detail', { title: 'Category Detail', category: results.category, category_items: results.category_items } );
+    });
+
 };
 
 // Display category create form on GET.
