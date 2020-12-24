@@ -8,8 +8,8 @@ block content
       label(for='name') Name:
       input#name.form-control(type='text', placeholder='Name of item' name='name' required='true' value=(undefined===item ? '' : item.name) )
     div.form-group
-      label(for='author') category:
-      select#category.form-control(type='select', placeholder='Select category' name='category' required='true' )
+      label(for='author') Category:
+      select#category.form-control(type='select', placeholder='Select Category' name='category' required='true' )
         - categories.sort(function(a, b) {let textA = a.name.toUpperCase(); let textB = b.name.toUpperCase(); return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;});
         for category in categories
           if item
@@ -18,7 +18,7 @@ block content
             option(value=category._id) #{category.name}
     div.form-group
       label(for='description') Description:
-      textarea#description.form-control(type='textarea', placeholder='description' name='description' required='true') #{undefined===item ? '' : item.description}
+      textarea#description.form-control(type='textarea', placeholder='Describe the item' name='description' required='true') #{undefined===item ? '' : item.description}
     div.form-group
       label(for='price') Price:
       input#price.form-control(type='number', placeholder='220' name='price' value=(undefined===item ? '' : item.price) required='true')
