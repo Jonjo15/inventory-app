@@ -123,13 +123,20 @@ exports.item_create_post = [
 ];
 
 // Display item delete form on GET.
-exports.item_delete_get = function(req, res) {
-    res.send('NOT IMPLEMENTED: item delete GET');
-};
+exports.item_delete_get = function(req, res, next) {
+    Item.findById(req.params.id).exec(function (err, item) {
+        if (err) { return next(err)}
+
+        res.render("item_delete", {title: "Delete Item", item: item})
+    })
+  };
 
 // Handle item delete on POST.
-exports.item_delete_post = function(req, res) {
-    res.send('NOT IMPLEMENTED: item delete POST');
+exports.item_delete_post = function(req, res, next) {
+    Item.findByIdAndRemove(req.body.itemid, function deleteInstance(err) {
+        if (err) {return next(err)}
+        res.redirect("/catalog/items")
+    })
 };
 
 // Display item update form on GET.

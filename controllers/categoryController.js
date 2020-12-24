@@ -98,14 +98,49 @@ exports.category_create_post =  [
   ];
 
 // Display category delete form on GET.
-exports.category_delete_get = function(req, res) {
-    res.send('NOT IMPLEMENTED: category delete GET');
-};
+exports.category_delete_get = function(req, res, next) {
+    async.parallel({
+      category: function(callback) {
+          Category.findById(req.params.id).exec(callback)
+      },
+      category_items: function(callback) {
+        Item.find({ 'category': req.params.id }).exec(callback)
+      },
+  }, function(err, results) {
+      if (err) { return next(err); }
+      if (results.category==null) { // No results.
+          res.redirect('/catalog/categories');
+      }
+      // Successful, so render.
+      res.render('category_delete', { title: 'Delete Category', category: results.category, category_items: results.category_items } );
+  });
+  };
 
 // Handle category delete on POST.
-exports.category_delete_post = function(req, res) {
-    res.send('NOT IMPLEMENTED: category delete POST');
-};
+exports.category_delete_post = function(req, res, next) {
+    // var id = mongoose.Types.ObjectId(req.body.id);
+    async.parallel({
+      category: function(callback) {
+          Category.findById(req.params.id).exec(callback)
+      },
+      category_items: function(callback) {
+        Item.find({ 'category': req.params.id }).exec(callback)
+      },
+  }, function(err, results) {
+      if (err) { return next(err); }
+      if (results.category_items.length > 0) { 
+        res.render('category_delete', { title: 'Delete Category', category: results.category, category_items: results.category_items } );
+      }
+      else {
+        Category.findByIdAndRemove(req.body.categoryid, function deletecategory (err) {
+                  if (err) { return next(err); }
+                  console.log("madeit")
+                                // Success - go to author list
+                  res.redirect('/catalog/categories/')
+                })
+      }
+  });
+  };
 
 // Display category update form on GET.
 exports.category_update_get = function(req, res) {
