@@ -7,11 +7,14 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var catalogRouter = require('./routes/catalog');  //Import routes for "catalog" area of site
+var compression = require('compression');
+var helmet = require('helmet');
 
 
 var app = express();
 var mongoose = require("mongoose")
-const mongoDB = "mongodb+srv://ivanbatur:ivanbatur@cluster0.siwgl.mongodb.net/inventory?retryWrites=true&w=majority";
+let dev_db_url = "mongodb+srv://ivanbatur:ivanbatur@cluster0.siwgl.mongodb.net/inventory?retryWrites=true&w=majority";
+let mongoDB = process.env.MONGODB_URI || dev_db_url;
 mongoose.connect(mongoDB, { useNewUrlParser: true , useUnifiedTopology: true});
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
@@ -24,6 +27,9 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(compression()); //Compress all routes
+app.use(helmet());
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
