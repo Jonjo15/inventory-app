@@ -140,11 +140,69 @@ exports.item_delete_post = function(req, res, next) {
 };
 
 // Display item update form on GET.
-exports.item_update_get = function(req, res) {
-    res.send('NOT IMPLEMENTED: item update GET');
+exports.item_update_get = function(req, res, next) {
+
+    // Get book, authors and genres for form.
+    async.parallel({
+        item: function(callback) {
+            Item.findById(req.params.id).populate('book').exec(callback);
+        },
+        categories: function(callback) {
+            Category.find(callback);
+        },
+        }, function(err, results) {
+            if (err) { return next(err); }
+            if (results.item==null) { // No results.
+                var err = new Error('Item not found');
+                err.status = 404;
+                return next(err);
+            }
+            res.render('item_form', { title: 'Update Item', item: results.item, categories: results.categories });
+        });
+
 };
 
 // Handle item update on POST.
-exports.item_update_post = function(req, res) {
-    res.send('NOT IMPLEMENTED: item update POST');
-};
+exports.item_update_post = [
+    // Validate and sanitise fields.
+    body('category', 'Category must be specified').trim().isLength({ min: 1 }).escape(),
+    body('name', 'Name must be specified').trim().isLength({ min: 1 }).escape(),
+    body('price', 'Price must be specified').trim().isLength({ min: 1 }).escape(),
+    body('description', 'Description must be specified').trim().isLength({ min: 1 }).escape(),
+    body('number_in_stock', 'Number in stock must be specified').trim().isLength({ min: 1 }).escape(),
+
+    (req, res, next) => {
+
+        // Extract the validation errors from a request.
+        const errors = validationResult(req);
+
+        // Create a item object with escaped and trimmed data.
+        var item = new Item(
+          { category: req.body.category,
+            name: req.body.name,
+            description: req.body.description,
+            price: req.body.price,
+            number_in_stock: req.body.number_in_stock,
+            _id: req.params.id
+           });
+
+        if (!errors.isEmpty()) {
+            // There are errors. Render form again with sanitized values and error messages.
+            Category.find({},'name')
+                .exec(function (err, categories) {
+                    if (err) { return next(err); }
+                    // Successful, so render.
+                    res.render('item_form', { title: 'Update Item', categories: categories, selected_category: item.category._id , errors: errors.array(), item: item });
+            });
+            return;
+        }
+        else {
+            // Data from form is valid.
+            Item.findByIdAndUpdate(req.params.id, item, {}, function (err,theitem) {
+                                if (err) { return next(err); }
+                                   // Successful - redirect to book detail page.
+                                   res.redirect(theitem.url);
+                                });
+        }
+    }
+];
